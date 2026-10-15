@@ -1,0 +1,77 @@
+
+/* ===== GALLERY ESCAPE: 이동 패드 + 그림 + 확대 ===== */
+
+/* WASD 이동 패드: 위 1칸, 아래 3칸 (키보드 배열) */
+.navpad {
+  display: grid;
+  grid-template-columns: repeat(3, 5.5em);
+  grid-template-areas: ". up ." "left down right";
+  gap: 0.4em;
+  justify-content: center;
+  margin: 2.2em auto 0.5em;
+  font-size: 0.85em;
+}
+.navpad .navbtn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 3.6em;
+  border: 1px solid var(--text);
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.2;
+  transition: background-color .15s, color .15s, transform .1s;
+}
+.navpad .navbtn b { font-size: 1.15em; letter-spacing: .05em; }
+.navpad .navbtn small { opacity: .7; font-size: .8em; }
+.navpad a.navbtn:hover, .navpad a.navbtn:focus-visible, .navpad a.navbtn.pressed {
+  background-color: var(--text); color: var(--background);
+}
+.navpad a.navbtn.pressed { transform: scale(.95); }
+.navpad .navbtn.disabled { opacity: .25; cursor: default; }
+#nav-up    { grid-area: up; }
+#nav-left  { grid-area: left; }
+#nav-down  { grid-area: down; }
+#nav-right { grid-area: right; }
+
+/* 그림 */
+.artwork {
+  margin: 1.2em auto;
+  text-align: center;
+}
+.artwork img {
+  max-width: 100%;
+  max-height: 46vh;
+  border: 10px solid #2b241f;
+  outline: 1px solid rgba(0,0,0,.4);
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+  cursor: zoom-in;
+  transition: transform .2s;
+}
+.artwork img:hover { transform: scale(1.02); }
+.artwork figcaption { margin-top: .6em; font-size: .8em; opacity: .7; }
+
+/* 확대 화면 */
+#zoom-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 8, 10, 0);
+  cursor: zoom-out;
+  transition: background-color .22s ease;
+}
+#zoom-overlay img {
+  max-width: 94vw; max-height: 88vh;
+  box-shadow: 0 0 60px rgba(0,0,0,.8);
+  transform: scale(.85); opacity: 0;
+  transition: transform .22s ease, opacity .22s ease;
+}
+#zoom-overlay.open { background: rgba(8, 8, 10, .93); }
+#zoom-overlay.open img { transform: scale(1); opacity: 1; }
+#zoom-overlay .zoom-hint {
+  position: absolute; bottom: 2.5vh; left: 0; right: 0;
+  text-align: center; color: #ddd; font-size: .9em; letter-spacing: .05em;
+}
+body.zooming { overflow: hidden; }
+
+@media (max-width: 600px) {
+  .navpad { grid-template-columns: repeat(3, 4.6em); }
+}

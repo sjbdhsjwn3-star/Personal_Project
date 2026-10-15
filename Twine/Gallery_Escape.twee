@@ -1,0 +1,571 @@
+:: StoryInit_Gallery
+<!-- 템플릿의 StoryInit 아래에 이 내용이 추가됩니다 -->
+<<set $found to []>>
+<<set $hint to "">>
+<<set $f2score to 0>>
+<<set $digits to []>>
+<<set $code to "">>
+<<set $tries to 0>>
+
+
+:: GalleryWidgets [widget]
+<!-- WASD 이동 패드: <<navpad "W(앞)" "A(왼쪽)" "S(뒤)" "D(오른쪽)">>  빈 문자열이면 비활성 -->
+<<widget "navpad">>
+<div class="navpad">
+<<if _args[0]>><a id="nav-up" class="navbtn" @data-passage="_args[0]"><b>W</b><small>앞으로</small></a><<else>><span id="nav-up" class="navbtn disabled"><b>W</b><small>앞으로</small></span><</if>>
+<<if _args[1]>><a id="nav-left" class="navbtn" @data-passage="_args[1]"><b>A</b><small>왼쪽</small></a><<else>><span id="nav-left" class="navbtn disabled"><b>A</b><small>왼쪽</small></span><</if>>
+<<if _args[2]>><a id="nav-down" class="navbtn" @data-passage="_args[2]"><b>S</b><small>뒤로</small></a><<else>><span id="nav-down" class="navbtn disabled"><b>S</b><small>뒤로</small></span><</if>>
+<<if _args[3]>><a id="nav-right" class="navbtn" @data-passage="_args[3]"><b>D</b><small>오른쪽</small></a><<else>><span id="nav-right" class="navbtn disabled"><b>D</b><small>오른쪽</small></span><</if>>
+</div>
+<</widget>>
+
+<!-- 그림: <<artwork "img/파일.png" "제목">>  E / Space / 클릭으로 확대 -->
+<<widget "artwork">>
+<figure class="artwork"><img @src="_args[0]" @alt="_args[1]"><figcaption>_args[1] · E / Space / 클릭으로 확대</figcaption></figure>
+<</widget>>
+
+
+:: Start [autosave]
+<<set $header to "갤러리 · 폐관 후">><<set $take to "프롤로그">>
+
+<<loc>>INT. - 시립미술관 로비 - 밤<</loc>>
+<<act>>폐관 안내 방송이 끝난 지 한참 지났다. 조명은 비상등 몇 개만 남았고, 로비 한가운데 서 있는 사람은 SEOYUN(20대) 하나뿐이다. 손에 쥔 관람권 귀퉁이가 땀에 젖어 있다.<</act>>
+
+<<char "서윤">>
+	<<wry>>혼잣말로<</wry>>
+	<<dia>>분명 마지막 그림만 보고 나간다고 했는데… 문이 왜 잠겨 있어.<</dia>>
+<</char>>
+
+<<act>>천장 스피커가 지직거린다. 부드럽고 장난기 섞인 목소리가 로비를 채운다.<</act>>
+
+<<char "루 (v.o.)">>
+	<<dia>>늦게까지 남아 주셨네요, 관람객님. 저는 이 미술관의 큐레이터, 루예요.<</dia>>
+<</char>>
+
+<<char "서윤">>
+	<<dia>>큐레이터요? 저 좀 내보내 주세요. 문이 안 열려요.<</dia>>
+<</char>>
+
+<<char "루 (v.o.)">>
+	<<wry>>웃음을 참으며<</wry>>
+	<<dia>>문은 그림을 제대로 본 사람에게만 열려요. 1층은 //눈//, 2층은 //기억//, 3층은 //숫자//. 세 층을 다 지나면 출구 비밀번호를 알게 될 거예요.<</dia>>
+<</char>>
+
+<<act>>로비 오른쪽 안내 데스크에는 손전등이, 정면에는 굳게 닫힌 유리문이, 왼쪽에는 1층 전시실 입구가 보인다.<</act>>
+
+<div class="choice choicebtn">
+	<<link "안내 데스크를 살펴본다">><<goto "Lobby_Desk">><</link>>
+	<<link "유리문을 흔들어 본다">><<goto "Lobby_Door">><</link>>
+	<<link "곧장 1층 전시실로 들어간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "Lobby_Door" "F1_Hall" "" "Lobby_Desk">>
+
+
+:: Lobby_Desk [autosave]
+<<set $header to "갤러리 · 로비">>
+
+<<loc>>INT. - 로비 안내 데스크 - 밤<</loc>>
+<<act>>데스크 위에 손전등과 접힌 전시 안내도가 놓여 있다. 안내도 귀퉁이에 누군가 연필로 적어 두었다.<</act>>
+
+<<act>>//"그림은 크게 보지 말고, 구석을 볼 것."//<</act>>
+
+<<char "서윤">>
+	<<dia>>구석… 그림 구석에 뭐가 있다는 거야?<</dia>>
+<</char>>
+
+<<char "루 (v.o.)">>
+	<<dia>>좋은 습관이에요. 손전등은 가져가셔도 돼요. 반납은… 탈출하신 다음에.<</dia>>
+<</char>>
+
+<div class="choice choicebtn">
+	<<link "손전등을 챙겨 1층 전시실로 간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_Hall" "" "Start" "">>
+
+
+:: Lobby_Door [autosave]
+<<set $header to "갤러리 · 로비">>
+
+<<loc>>INT. - 로비 정문 - 밤<</loc>>
+<<act>>서윤이 유리문 손잡이를 힘껏 당긴다. 문 옆 작은 화면에 네 칸짜리 입력창이 깜빡인다. //_ _ _ _//<</act>>
+
+<<char "서윤">>
+	<<dia>>비밀번호 네 자리…<</dia>>
+<</char>>
+
+<<char "루 (v.o.)">>
+	<<wry>>느긋하게<</wry>>
+	<<dia>>아직은 아무 숫자도 모르시잖아요. 3층까지 올라가면 그때 다시 와 보세요.<</dia>>
+<</char>>
+
+<div class="choice choicebtn">
+	<<link "안내 데스크를 살펴본다">><<goto "Lobby_Desk">><</link>>
+	<<link "1층 전시실로 들어간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "" "F1_Hall" "Start" "Lobby_Desk">>
+
+
+:: F1_Hall [autosave]
+<<set $header to "1층 · 관찰의 방">><<set $take to "1층">>
+
+<<loc>>INT. - 1층 전시실 - 밤<</loc>>
+<<act>>벽 램프가 하얀 빛으로 그림 다섯 점을 하나씩 비춘다. 바닥 안내판에 문장이 새겨져 있다.<</act>>
+
+<<act>>''그림 속에 숨겨진 물건 다섯 개를 모두 찾아 손으로 짚으세요.''<</act>>
+
+<<char "루 (v.o.)">>
+	<<dia>>그림마다 하나씩, 작고 반짝이는 게 숨어 있어요. 찾을 때마다 제가 알려 드릴게요.<</dia>>
+<</char>>
+
+<<act>>찾은 물건: ''<<print $found.length>> / 5''<<if $found.length gt 0>> — <<print $found.join(", ")>><</if>><</act>>
+
+<div class="choice choicebtn stack">
+	<<link "어항 속 물고기를 바라보는 소녀">><<goto "F1_Fishbowl">><</link>>
+	<<link "밤하늘 아래 들판에서 손잡은 사람들">><<goto "F1_NightField">><</link>>
+	<<link "언덕 위에 누워 있는 아이">><<goto "F1_Hill">><</link>>
+	<<link "꽃밭 속 노란 강아지">><<goto "F1_Dog">><</link>>
+	<<link "연못 위 오리">><<goto "F1_Duck">><</link>>
+</div>
+
+<<if $found.length gte 5>>
+<<trans>>램프 다섯 개가 동시에 깜빡인다. 계단 쪽 문이 열리는 소리.<</trans>>
+<<char "루 (v.o.)">>
+	<<dia>>전부 찾으셨네요! 눈은 합격이에요. 이제 기억을 시험해 볼까요?<</dia>>
+<</char>>
+<div class="choice choicebtn">
+	<<link "계단을 올라 2층으로">><<goto "F2_Observe">><</link>>
+</div>
+<</if>>
+
+<<navpad "F1_Fishbowl" "F1_Duck" "Start" "F1_Fishbowl">>
+
+
+:: F1_Fishbowl [autosave]
+<<set $header to "1층 · 어항 속 소녀">>
+
+<<loc>>INT. - 1층 전시실 - 그림 앞<</loc>>
+<<act>>단발머리 소녀가 커다란 어항을 두 팔로 안고 들여다본다. 금붕어 네 마리, 수초, 작은 집 한 채. 바닥에는 알록달록한 자갈이 깔려 있다.<</act>>
+<<artwork "img/f1_fishbowl.png" "어항 속 물고기를 바라보는 소녀">>
+
+<<if $hint neq "">><<act>>//$hint//<</act>><<set $hint to "">><</if>>
+
+<<if $found.includes("작은 열쇠")>>
+<<act>>자갈 사이에 끼어 있던 ''작은 열쇠''가 반짝인다. 이미 찾았다.<</act>>
+<<else>>
+<<act>>어디를 짚어 볼까?<</act>>
+<div class="choice">
+	<<link "금붕어 지느러미">><<set $hint to "그냥 금붕어다. 눈이 동그랗다.">><<goto "F1_Fishbowl">><</link>>
+	<<link "어항 속 작은 집의 문">><<set $hint to "문은 그려져 있을 뿐, 열리지 않는다.">><<goto "F1_Fishbowl">><</link>>
+	<<link "바닥 자갈 사이">><<run $found.pushUnique("작은 열쇠")>><<set $hint to "자갈 틈에서 손톱만 한 열쇠가 빛난다!">><<goto "F1_Fishbowl">><</link>>
+</div>
+<</if>>
+
+<div class="choice choicebtn">
+	<<link "전시실 가운데로 돌아간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_NightField" "F1_Duck" "F1_Hall" "F1_NightField">>
+
+
+:: F1_NightField [autosave]
+<<set $header to "1층 · 밤의 들판">>
+
+<<loc>>INT. - 1층 전시실 - 그림 앞<</loc>>
+<<act>>짙은 파란 밤하늘 아래, 흰 원피스를 입은 아이들이 손을 맞잡고 원을 그리며 돈다. 멀리 눈 덮인 산이 있고, 하늘에는 별이 가득하다.<</act>>
+<<artwork "img/f1_nightfield.png" "밤하늘 아래 들판">>
+
+<<if $hint neq "">><<act>>//$hint//<</act>><<set $hint to "">><</if>>
+
+<<if $found.includes("두 번째 달")>>
+<<act>>오른쪽 산봉우리 위의 ''작은 두 번째 달''. 이미 찾았다.<</act>>
+<<else>>
+<<char "서윤">>
+	<<wry>>눈을 가늘게 뜨고<</wry>>
+	<<dia>>별이 너무 많아… 이 중에 다른 게 있다고?<</dia>>
+<</char>>
+<div class="choice">
+	<<link "왼쪽 위 큰 초승달">><<set $hint to "이건 누가 봐도 달이다. 숨겨진 건 아니다.">><<goto "F1_NightField">><</link>>
+	<<link "가장 밝게 빛나는 별">><<set $hint to "평범한 별이다. 반짝임이 조금 셀 뿐.">><<goto "F1_NightField">><</link>>
+	<<link "오른쪽 산봉우리 위">><<run $found.pushUnique("두 번째 달")>><<set $hint to "산 위에 아주 작은 달이 하나 더 떠 있다!">><<goto "F1_NightField">><</link>>
+</div>
+<</if>>
+
+<div class="choice choicebtn">
+	<<link "전시실 가운데로 돌아간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_Hill" "F1_Fishbowl" "F1_Hall" "F1_Hill">>
+
+
+:: F1_Hill [autosave]
+<<set $header to "1층 · 언덕 위">>
+
+<<loc>>INT. - 1층 전시실 - 그림 앞<</loc>>
+<<act>>줄무늬 티셔츠를 입은 아이가 색연필로 칠한 듯한 풀언덕에 엎드려 누워 있다. 풀잎은 초록, 주황, 분홍으로 바람에 눕는다.<</act>>
+<<artwork "img/f1_hill.png" "언덕 위에 누워 있는 아이">>
+
+<<if $hint neq "">><<act>>//$hint//<</act>><<set $hint to "">><</if>>
+
+<<if $found.includes("무당벌레")>>
+<<act>>오른쪽 풀숲 사이의 빨간 ''무당벌레''. 이미 찾았다.<</act>>
+<<else>>
+<div class="choice">
+	<<link "아이의 운동화 밑">><<set $hint to "흙 묻은 운동화. 별다른 건 없다.">><<goto "F1_Hill">><</link>>
+	<<link "아이의 머리카락 근처">><<set $hint to "풀잎이 머리카락에 엉켜 있을 뿐이다.">><<goto "F1_Hill">><</link>>
+	<<link "오른쪽 아래 풀숲 사이">><<run $found.pushUnique("무당벌레")>><<set $hint to "풀잎 사이에 점 일곱 개짜리 무당벌레가 숨어 있다!">><<goto "F1_Hill">><</link>>
+</div>
+<</if>>
+
+<div class="choice choicebtn">
+	<<link "전시실 가운데로 돌아간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_Dog" "F1_NightField" "F1_Hall" "F1_Dog">>
+
+
+:: F1_Dog [autosave]
+<<set $header to "1층 · 꽃밭의 강아지">>
+
+<<loc>>INT. - 1층 전시실 - 그림 앞<</loc>>
+<<act>>붓자국이 두꺼운 유화. 분홍과 주황 꽃잎이 소용돌이치는 초록 꽃밭 한가운데, 노란 털의 강아지가 멀뚱히 정면을 본다.<</act>>
+<<artwork "img/f1_dog.png" "꽃밭 속 노란 강아지">>
+
+<<if $hint neq "">><<act>>//$hint//<</act>><<set $hint to "">><</if>>
+
+<<if $found.includes("뼈다귀")>>
+<<act>>오른쪽 아래 구석의 하얀 ''뼈다귀''. 이미 찾았다.<</act>>
+<<else>>
+<<char "루 (v.o.)">>
+	<<dia>>강아지가 제일 좋아하는 걸 찾아 주세요.<</dia>>
+<</char>>
+<div class="choice">
+	<<link "강아지 목 주변">><<set $hint to "목줄은 없다. 털만 복슬복슬하다.">><<goto "F1_Dog">><</link>>
+	<<link "가운데 가장 큰 꽃">><<set $hint to "꽃잎이 겹겹이 칠해져 있을 뿐이다.">><<goto "F1_Dog">><</link>>
+	<<link "꽃밭 오른쪽 아래 구석">><<run $found.pushUnique("뼈다귀")>><<set $hint to "꽃잎 사이에 하얀 뼈다귀 장난감이 떨어져 있다!">><<goto "F1_Dog">><</link>>
+</div>
+<</if>>
+
+<div class="choice choicebtn">
+	<<link "전시실 가운데로 돌아간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_Duck" "F1_Hill" "F1_Hall" "F1_Duck">>
+
+
+:: F1_Duck [autosave]
+<<set $header to "1층 · 연못의 오리">>
+
+<<loc>>INT. - 1층 전시실 - 그림 앞<</loc>>
+<<act>>하늘색 크레파스 그림. 빨간 장화를 신은 흰 오리가 작은 연못을 내려다보고, 물에는 오리와 구름이 거꾸로 비친다.<</act>>
+<<artwork "img/f1_duck.png" "연못 위 오리">>
+
+<<if $hint neq "">><<act>>//$hint//<</act>><<set $hint to "">><</if>>
+
+<<if $found.includes("반지")>>
+<<act>>연못 가장자리 풀숲의 작은 금 ''반지''. 이미 찾았다.<</act>>
+<<else>>
+<div class="choice">
+	<<link "빨간 장화">><<set $hint to "장화는 새것처럼 반짝인다. 그게 다다.">><<goto "F1_Duck">><</link>>
+	<<link "물에 비친 구름">><<set $hint to "구름 그림자가 일렁인다.">><<goto "F1_Duck">><</link>>
+	<<link "오리 부리 앞, 연못 가장자리 풀숲">><<run $found.pushUnique("반지")>><<set $hint to "풀숲에 작은 금반지가 걸려 있다. 물에도 비쳐 보인다!">><<goto "F1_Duck">><</link>>
+</div>
+<</if>>
+
+<div class="choice choicebtn">
+	<<link "전시실 가운데로 돌아간다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F1_Fishbowl" "F1_Dog" "F1_Hall" "F1_Fishbowl">>
+
+
+:: F2_Observe [autosave]
+<<set $header to "2층 · 기억의 방">><<set $take to "2층">><<set $f2score to 0>>
+
+<<trans>>계단을 오르는 발소리, 이어서 컷:<</trans>>
+<<loc>>INT. - 2층 전시실 - 밤<</loc>>
+<<act>>천장 가장자리를 따라 따뜻한 빛줄기가 흐른다. 황토색 벽에 알록달록한 그림들이 촘촘히 걸려 있다.<</act>>
+
+<<char "루 (v.o.)">>
+	<<dia>>이번엔 잘 //기억//해 두세요. 잠시 뒤에 불을 끌 거예요. 다시 켜졌을 때 무엇이 달라졌는지 맞히면 통과예요.<</dia>>
+<</char>>
+
+<<act>>서윤은 그림 다섯 점을 천천히 훑는다.<</act>>
+<<act>>
+- ''바나나'' — 커다란 바나나 송이를 안은 인물. 바나나 잎은 //짙은 초록색//이다.<br>
+- ''노란 우산을 든 여자'' — 빗속에 노란 우산을 든 여자. 뒤로는 //주황빛 배경//에 둥근 달이 떠 있다.<br>
+- ''백조'' — 호수 위 백조 두 마리가 //서로 마주 보고// 있다.<br>
+- ''비눗방울'' — 강아지와 산책하는 아이 주변으로 //동그란 비눗방울//이 떠다닌다.<br>
+- ''호숫가의 여자'' — 옆모습의 여자. 긴 머리를 //풀어 내렸다//.
+<</act>>
+
+<<char "서윤">>
+	<<wry>>작게 되뇌며<</wry>>
+	<<dia>>초록 잎, 주황 배경, 마주 보는 백조, 비눗방울, 풀린 머리…<</dia>>
+<</char>>
+
+<div class="choice choicebtn">
+	<<link "다 외웠다. 불을 꺼도 좋다고 말한다">><<goto "F2_Blackout">><</link>>
+	<<link "1층으로 내려가 다시 둘러본다">><<goto "F1_Hall">><</link>>
+</div>
+
+<<navpad "F2_Blackout" "" "F1_Hall" "">>
+
+
+:: F2_Blackout [autosave]
+<<set $header to "2층 · 기억의 방">>
+
+<<act>>딸깍. 완전한 어둠. 어디선가 액자를 바꾸는 듯한 사각거리는 소리가 난다.<</act>>
+<<trans>>암전 — 3초 후 조명 다시 켜짐:<</trans>>
+<<act>>그림들은 그대로 걸려 있다. 그런데… 어딘가 미묘하게 다르다.<</act>>
+
+<<char "루 (v.o.)">>
+	<<dia>>자, 질문 다섯 개예요. 네 개 이상 맞히시면 3층 문을 열어 드릴게요.<</dia>>
+<</char>>
+
+<div class="choice choicebtn">
+	<<link "첫 번째 질문">><<goto "F2_Q1">><</link>>
+</div>
+
+<<navpad "F2_Q1" "" "" "">>
+
+
+:: F2_Q1 [autosave]
+<<set $header to "2층 · 질문 1 / 5">>
+<<act>>''바나나 그림''에서 달라진 것은?<</act>>
+<div class="choice choicebtn stack">
+	<<link "바나나 잎이 초록색에서 노란색이 되었다">><<set $f2score++>><<goto "F2_Q2">><</link>>
+	<<link "인물의 표정이 웃는 얼굴로 바뀌었다">><<goto "F2_Q2">><</link>>
+	<<link "바나나 개수가 하나 줄었다">><<goto "F2_Q2">><</link>>
+</div>
+
+
+:: F2_Q2 [autosave]
+<<set $header to "2층 · 질문 2 / 5">>
+<<act>>''노란 우산을 든 여자''에서 달라진 것은?<</act>>
+<div class="choice choicebtn stack">
+	<<link "우산 색이 파란색이 되었다">><<goto "F2_Q3">><</link>>
+	<<link "뒤쪽 배경 색이 바뀌었다">><<set $f2score++>><<goto "F2_Q3">><</link>>
+	<<link "달이 사라졌다">><<goto "F2_Q3">><</link>>
+</div>
+
+
+:: F2_Q3 [autosave]
+<<set $header to "2층 · 질문 3 / 5">>
+<<act>>''백조 그림''에서 달라진 것은?<</act>>
+<div class="choice choicebtn stack">
+	<<link "백조가 세 마리가 되었다">><<goto "F2_Q4">><</link>>
+	<<link "호수가 얼어붙었다">><<goto "F2_Q4">><</link>>
+	<<link "한 마리가 반대쪽으로 고개를 돌렸다">><<set $f2score++>><<goto "F2_Q4">><</link>>
+</div>
+
+
+:: F2_Q4 [autosave]
+<<set $header to "2층 · 질문 4 / 5">>
+<<act>>''비눗방울 그림''에서 달라진 것은?<</act>>
+<div class="choice choicebtn stack">
+	<<link "동그란 비눗방울이 모두 사라졌다">><<set $f2score++>><<goto "F2_Q5">><</link>>
+	<<link "강아지 무늬가 바뀌었다">><<goto "F2_Q5">><</link>>
+	<<link "아이의 모자가 사라졌다">><<goto "F2_Q5">><</link>>
+</div>
+
+
+:: F2_Q5 [autosave]
+<<set $header to "2층 · 질문 5 / 5">>
+<<act>>''호숫가의 여자''에서 달라진 것은?<</act>>
+<div class="choice choicebtn stack">
+	<<link "옆모습이 정면으로 바뀌었다">><<goto "F2_Result">><</link>>
+	<<link "풀어 내린 머리가 반묶음이 되었다">><<set $f2score++>><<goto "F2_Result">><</link>>
+	<<link "호수에 배가 생겼다">><<goto "F2_Result">><</link>>
+</div>
+
+
+:: F2_Result [autosave]
+<<set $header to "2층 · 결과">>
+
+<<act>>정답: ''<<print $f2score>> / 5''<</act>>
+
+<<if $f2score gte 4>>
+<<char "루 (v.o.)">>
+	<<wry>>박수를 치며<</wry>>
+	<<dia>>훌륭해요. 기억력도 합격! 3층은 조금 어두워요. 흑백의 방이거든요.<</dia>>
+<</char>>
+<div class="choice choicebtn">
+	<<link "3층으로 올라간다">><<goto "F3_Hall">><</link>>
+</div>
+<<else>>
+<<char "루 (v.o.)">>
+	<<wry>>아쉬운 듯<</wry>>
+	<<dia>>조금 부족해요. 그림을 다시 한번 눈에 담아 보세요.<</dia>>
+<</char>>
+<div class="choice choicebtn">
+	<<link "다시 관찰한다">><<goto "F2_Observe">><</link>>
+</div>
+<</if>>
+
+
+:: F3_Hall [autosave]
+<<set $header to "3층 · 숫자의 방">><<set $take to "3층">>
+
+<<trans>>계단 끝, 문이 열리며 컷:<</trans>>
+<<loc>>INT. - 3층 전시실 - 밤<</loc>>
+<<act>>모든 색이 빠져나간 방. 천장 와이어에 매달린 흑백 그림 네 점을 하얀 핀 조명이 하나씩 비춘다. 입구 벽에 시 한 줄이 적혀 있다.<</act>>
+
+<<act>>//"먼저 오르고, 가장 많이 읽히고, 가장 멀리 떠나고, 마지막에 핀다."//<</act>>
+
+<<char "루 (v.o.)">>
+	<<dia>>그림마다 숫자가 하나씩 숨어 있어요. 네 개를 모아 시의 순서대로 놓으면… 그게 출구 비밀번호예요.<</dia>>
+<</char>>
+
+<<act>>찾은 숫자: ''<<if $digits.length is 0>>없음<<else>><<print $digits.join(" · ")>><</if>>''<</act>>
+
+<div class="choice choicebtn stack">
+	<<link "책장 / 도서관">><<goto "F3_Library">><</link>>
+	<<link "밤바다와 돛단배">><<goto "F3_Sea">><</link>>
+	<<link "꽃무늬 반복 패턴">><<goto "F3_Flowers">><</link>>
+	<<link "기묘한 계단">><<goto "F3_Stairs">><</link>>
+</div>
+
+<<if $digits.length gte 4>>
+<div class="choice choicebtn">
+	<<link "로비로 내려가 비밀번호를 입력한다">><<goto "F3_Lock">><</link>>
+</div>
+<</if>>
+
+<<navpad "F3_Library" "F3_Stairs" "" "F3_Library">>
+
+
+:: F3_Library [autosave]
+<<set $header to "3층 · 도서관">>
+<<loc>>INT. - 3층 전시실 - 그림 앞<</loc>>
+<<act>>끝없이 높은 책장 사이로 좁은 복도가 이어진다. 복도 끝에 작은 사람 그림자 하나.<</act>>
+<<artwork "img/f3_library.png" "책장 / 도서관">>
+<<if $digits.some(function (d) { return d.indexOf("도서관") gt -1; })>>
+<<act>>가운데 책장의 책등에 적힌 ''7''. 이미 찾았다.<</act>>
+<<else>>
+<<char "서윤">><<dia>>책 제목이… 숫자 같은데?<</dia>><</char>>
+<div class="choice">
+	<<link "가운데 책장의 책등을 본다">><<run $digits.pushUnique("도서관=7")>><<goto "F3_Library">><</link>>
+</div>
+<</if>>
+<div class="choice choicebtn"><<link "전시실 가운데로">><<goto "F3_Hall">><</link>></div>
+
+<<navpad "F3_Sea" "F3_Stairs" "F3_Hall" "F3_Sea">>
+
+
+:: F3_Sea [autosave]
+<<set $header to "3층 · 밤바다">>
+<<loc>>INT. - 3층 전시실 - 그림 앞<</loc>>
+<<act>>소용돌이치는 파도 위의 돛단배. 초승달 옆으로 작은 점들이 흩어져 별자리를 이룬다.<</act>>
+<<artwork "img/f3_sea.png" "밤바다와 돛단배">>
+<<if $digits.some(function (d) { return d.indexOf("밤바다") gt -1; })>>
+<<act>>달 옆 별자리가 그리는 ''3''. 이미 찾았다.<</act>>
+<<else>>
+<div class="choice">
+	<<link "초승달 옆 별자리를 이어 본다">><<run $digits.pushUnique("밤바다=3")>><<goto "F3_Sea">><</link>>
+</div>
+<</if>>
+<div class="choice choicebtn"><<link "전시실 가운데로">><<goto "F3_Hall">><</link>></div>
+
+<<navpad "F3_Flowers" "F3_Library" "F3_Hall" "F3_Flowers">>
+
+
+:: F3_Flowers [autosave]
+<<set $header to "3층 · 꽃무늬">>
+<<loc>>INT. - 3층 전시실 - 그림 앞<</loc>>
+<<act>>검은 꽃과 흰 꽃이 빈틈없이 반복되는 패턴. 오래 보고 있으면 눈이 어지럽다.<</act>>
+<<artwork "img/f3_flowers.png" "꽃무늬 반복 패턴">>
+<<if $digits.some(function (d) { return d.indexOf("꽃무늬") gt -1; })>>
+<<act>>암술과 수술이 구부러져 만든 ''5''. 이미 찾았다.<</act>>
+<<else>>
+<div class="choice">
+	<<link "가운데 큰 꽃의 암술·수술을 들여다본다">><<run $digits.pushUnique("꽃무늬=5")>><<goto "F3_Flowers">><</link>>
+</div>
+<</if>>
+<div class="choice choicebtn"><<link "전시실 가운데로">><<goto "F3_Hall">><</link>></div>
+
+<<navpad "F3_Stairs" "F3_Sea" "F3_Hall" "F3_Stairs">>
+
+
+:: F3_Stairs [autosave]
+<<set $header to "3층 · 기묘한 계단">>
+<<loc>>INT. - 3층 전시실 - 그림 앞<</loc>>
+<<act>>위로도 아래로도 끝나지 않는 계단들이 엉켜 있다. 펜 선이 촘촘하다.<</act>>
+<<artwork "img/f3_stairs.png" "기묘한 계단">>
+<<if $digits.some(function (d) { return d.indexOf("계단") gt -1; })>>
+<<act>>계단 옆면에 음각으로 파인 ''2''. 이미 찾았다.<</act>>
+<<else>>
+<<char "서윤">><<wry>>손전등을 비스듬히 대며<</wry>><<dia>>그림자가 지는 곳에… 뭔가 파여 있어.<</dia>><</char>>
+<div class="choice">
+	<<link "손전등을 비스듬히 비춰 계단 옆면을 본다">><<run $digits.pushUnique("계단=2")>><<goto "F3_Stairs">><</link>>
+</div>
+<</if>>
+<div class="choice choicebtn"><<link "전시실 가운데로">><<goto "F3_Hall">><</link>></div>
+
+<<navpad "F3_Library" "F3_Flowers" "F3_Hall" "F3_Library">>
+
+
+:: F3_Lock [autosave]
+<<set $header to "로비 · 출구">><<set $take to "출구">>
+
+<<trans>>계단을 단숨에 내려와 컷:<</trans>>
+<<loc>>INT. - 로비 정문 - 밤<</loc>>
+<<act>>유리문 옆 화면이 다시 깜빡인다. 서윤은 3층 입구의 시를 떠올린다. //먼저 오르고(계단), 가장 많이 읽히고(도서관), 가장 멀리 떠나고(밤바다), 마지막에 핀다(꽃무늬).//<</act>>
+
+<<act>>모은 숫자: <<print $digits.join(" · ")>><</act>>
+
+<<textbox "$code" "" autofocus>>
+
+<div class="choice choicebtn">
+	<<link "입력한다">><<set $tries++>><<if $code.trim() is "2735">><<goto "Ending_Escape">><<else>><<goto "F3_Wrong">><</if>><</link>>
+	<<link "3층으로 돌아가 다시 본다">><<goto "F3_Hall">><</link>>
+</div>
+
+
+:: F3_Wrong [autosave]
+<<set $header to "로비 · 출구">>
+<<act>>삐— 화면이 붉게 깜빡인다. (시도 <<print $tries>>회)<</act>>
+<<char "루 (v.o.)">>
+	<<dia>><<if $tries gte 3>>힌트를 드릴게요. 시를 그림에 하나씩 짝지어 보세요. //오르는 것//은 계단이에요.<<else>>숫자는 맞는데, 순서가 아닐지도요.<</if>><</dia>>
+<</char>>
+<div class="choice choicebtn">
+	<<link "다시 입력한다">><<goto "F3_Lock">><</link>>
+</div>
+
+<<navpad "F3_Lock" "" "F3_Hall" "">>
+
+
+:: Ending_Escape [autosave]
+<<set $header to "에필로그">><<set $take to "탈출">>
+
+<<act>>딸깍. 유리문이 천천히 열리고 밤공기가 밀려 들어온다.<</act>>
+
+<<char "루 (v.o.)">>
+	<<wry>>조금 아쉬운 듯<</wry>>
+	<<dia>>축하해요, 관람객님. 눈과 기억과 숫자, 전부 통과예요. …그런데 정말 나가실 거예요? 오늘 밤 그림들은 당신 덕분에 처음으로 //제대로// 보였거든요.<</dia>>
+<</char>>
+
+<div class="choice choicebtn">
+	<<link "문밖으로 나간다">><<goto "Ending_Leave">><</link>>
+	<<link "뒤돌아 다시 전시실을 본다">><<goto "Ending_Stay">><</link>>
+</div>
+
+
+:: Ending_Leave [autosave]
+<<set $header to "fin.">>
+<<loc>>EXT. - 미술관 앞 계단 - 새벽<</loc>>
+<<act>>서윤이 계단을 내려간다. 손에는 여전히 손전등이 들려 있다. 뒤돌아보면, 2층 창문에서 따뜻한 빛줄기가 한 번 깜빡이고 꺼진다.<</act>>
+<<char "서윤">><<wry>>피식 웃으며<</wry>><<dia>>반납은 다음에 할게요.<</dia>><</char>>
+<<trans>>FADE OUT.<</trans>>
+<div class="choice choicebtn"><<link "처음부터">><<run UI.restart()>><</link>></div>
+
+
+:: Ending_Stay [autosave]
+<<set $header to "fin.">>
+<<loc>>INT. - 로비 - 새벽<</loc>>
+<<act>>서윤은 열린 문을 등지고 1층 전시실 쪽으로 걸어간다. 벽 램프가 하나씩, 서윤이 지나가는 순서대로 켜진다.<</act>>
+<<char "루 (v.o.)">><<dia>>그럼… 다음 전시도 같이 준비해 볼까요, 큐레이터님?<</dia>><</char>>
+<<trans>>CUT TO BLACK.<</trans>>
+<div class="choice choicebtn"><<link "처음부터">><<run UI.restart()>><</link>></div>

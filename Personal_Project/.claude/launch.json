@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "twine-preview",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\MBC-50~1\\AppData\\Local\\Temp\\claude\\C--Users-MBC-501-04-Desktop-miga-Personal-project-git-Personal-Project\\a3bbbc04-c09b-41f4-89ef-2e719e41436f\\scratchpad\\serve.ps1"],
+      "port": 8765
+    }
+  ]
+}
