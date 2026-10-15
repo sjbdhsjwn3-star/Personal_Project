@@ -30,6 +30,11 @@ public class EndingBook : MonoBehaviour, IPointerTarget
     public string mainMenuScene = "MainMenu";
     [Tooltip("패널 배경 종이 (시작 안내와 같은 ui_ticket_blank). 비우면 단색 종이")]
     public Sprite ticket;
+    [Tooltip("엔딩 화면이 뜰 때 나오는 음악 (층 BGM은 멈춘다)")]
+    public AudioClip endingMusic;
+    [Range(0f, 1f)] public float endingVolume = 0.8f;
+    [Tooltip("켜면 엔딩 음악을 반복 재생")]
+    public bool loopEndingMusic = false;
     public UnityEvent onEnding;
 
     public static bool IsShowing { get; private set; }
@@ -114,6 +119,13 @@ public class EndingBook : MonoBehaviour, IPointerTarget
         if (promptShown) { promptShown = false; m.UI.HidePrompt(); }
 
         if (BGMManager.Instance != null) BGMManager.Instance.StopAll();
+        if (endingMusic != null)
+        {
+            var src = gameObject.AddComponent<AudioSource>();
+            src.spatialBlend = 0f;   // 2D
+            if (loopEndingMusic) { src.clip = endingMusic; src.volume = endingVolume; src.loop = true; src.Play(); }
+            else src.PlayOneShot(endingMusic, endingVolume);
+        }
         if (m != null)
         {
             m.onGameCleared?.Invoke();

@@ -109,6 +109,7 @@ public class InteractDoor : MonoBehaviour, IPointerTarget
         if (promptOwner == this) { promptOwner = null; m.UI.HidePrompt(); }
         if (!string.IsNullOrEmpty(openedToast)) m.UI.Toast(openedToast, 2.5f);
 
+        GameSfx.PlayDoor(Center);
         if (doorLeaf != null && (swingAwayFromPlayer || animator == null)) StartCoroutine(Swing(fromPosition));
         else if (animator != null) animator.Play(openState);
         onOpened?.Invoke();

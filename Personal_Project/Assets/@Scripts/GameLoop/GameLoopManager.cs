@@ -172,6 +172,7 @@ public class GameLoopManager : MonoBehaviour
             to.SetUnlocked(true);
             onFloorUnlocked?.Invoke(to.floorNumber);
         }
+        GameSfx.PlayDoor();   // 계단실 문을 열고 나가는 소리 (화면이 어두워지는 동안)
         var point = to.stairArrival != null ? to.stairArrival : to.spawnPoint;
         StartCoroutine(TeleportRoutine(point, $"{to.floorNumber}층", 0f));
     }

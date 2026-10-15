@@ -32,7 +32,8 @@ public class GalleryWall : MonoBehaviour
 
     void DelayedApply()
     {
-        if (this != null) Apply();
+        // 편집용 배치 도구 — 플레이 중에는 돌리지 않는다 (정적 배칭으로 메시가 합쳐져 크기를 잘못 재고 그림이 엉뚱한 곳으로 감)
+        if (this != null && !EditorApplication.isPlayingOrWillChangePlaymode) Apply();
     }
 #endif
 
