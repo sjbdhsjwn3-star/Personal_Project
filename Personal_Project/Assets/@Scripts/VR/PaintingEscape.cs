@@ -5,8 +5,8 @@ using UnityEngine;
 // 그림 프레임 탈출 연출
 //  1) 대기: 그림 표면에 나비가 붙어 은은히 빛나고, 그림 주변에 빛 가루가 아른거린다 (시선 유도)
 //  2) 플레이어가 가까이 와서 그림 쪽을 바라보면 → 캔버스에 물결이 퍼지고 나비가 차례로 그림 밖으로 빠져나온다
-//  3) 나비는 빛 가루를 흘리며 전시실 공중과 관람객 주변을 날다가, flightDuration 뒤 그림으로 돌아가 다시 붙는다
-//  4) 플레이어가 멀어졌다 다시 오면 반복
+//  3) 나비는 빛 가루를 흘리며 2~3초 날다가 빛 가루로 흩어지며 사라진다 (vanishAfterFlight를 끄면 그림으로 돌아감)
+//  4) 플레이어가 멀어지면 나비가 그림 위로 되돌아가 있고, 다시 오면 반복
 public class PaintingEscape : MonoBehaviour
 {
     [Header("Painting")]
@@ -20,7 +20,13 @@ public class PaintingEscape : MonoBehaviour
     [Range(0.3f, 4f)] public float butterflyScale = 1.8f;
     [Tooltip("두 번째 나비부터 이만큼 늦게 출발")]
     [Range(0f, 3f)] public float escapeStagger = 0.7f;
-    [Tooltip("날아다니는 시간 (초) — 지나면 그림으로 돌아간다. 0이면 계속")]
+    [Tooltip("켜면 그림에서 나온 나비가 잠깐 날다가 빛 가루로 흩어지며 사라진다 (끄면 flightDuration 뒤 그림으로 돌아감)")]
+    public bool vanishAfterFlight = true;
+    [Tooltip("그림에서 빠져나온 뒤 날아다니는 시간 (초) — 이 범위에서 무작위")]
+    public Vector2 vanishAfter = new Vector2(2f, 3f);
+    [Tooltip("켜면 그림에서 나온 나비가 플레이어 머리 주변을 따라다닌다")]
+    public bool followPlayer = true;
+    [Tooltip("vanishAfterFlight를 껐을 때: 날아다니는 시간 (초) — 지나면 그림으로 돌아간다. 0이면 계속")]
     public float flightDuration = 35f;
 
     [Header("Fly Area (그림 앞 공간)")]
@@ -116,7 +122,14 @@ public class PaintingEscape : MonoBehaviour
         bool inFront = Vector3.Dot(player.position - c, normal) > 0f;
         if (dist > resetRadius || !sameFloor) out_ = true;
 
-        foreach (var b in butterflies) b.followTarget = cam.transform;
+        // 사라진 나비는 플레이어가 멀어졌을 때 그림 위로 조용히 되돌려 둔다 (다시 오면 연출 반복)
+        if (out_ && !armed && butterflies.TrueForAll(b => b.IsGone))
+        {
+            foreach (var b in butterflies) b.Respawn();
+            armed = true;
+        }
+
+        foreach (var b in butterflies) { b.followTarget = cam.transform; b.followPlayer = followPlayer; }
 
         bool allHome = butterflies.TrueForAll(b => b.IsHome);
         if (idleSparkle != null)
@@ -131,7 +144,7 @@ public class PaintingEscape : MonoBehaviour
             if (Vector3.Dot(cam.transform.forward, toPainting) >= lookThreshold) StartCoroutine(Escape(m));
         }
 
-        if (flyingSince >= 0f && flightDuration > 0f && Time.time - flyingSince > flightDuration)
+        if (!vanishAfterFlight && flyingSince >= 0f && flightDuration > 0f && Time.time - flyingSince > flightDuration)
         {
             flyingSince = -1f;
             StartCoroutine(ReturnHome());
@@ -149,9 +162,17 @@ public class PaintingEscape : MonoBehaviour
             StartCoroutine(Ripple(restSpots[i]));
             yield return new WaitForSeconds(0.35f);   // 물결이 먼저 일고 나비가 따라 나온다
             butterflies[i].EscapeOut();
+            if (vanishAfterFlight) StartCoroutine(VanishLater(butterflies[i]));
             yield return new WaitForSeconds(escapeStagger);
         }
         flyingSince = Time.time;
+    }
+
+    // 그림 밖으로 빠져나오는 동작(약 1.6초)이 끝난 뒤 2~3초 날다가 사라진다
+    IEnumerator VanishLater(ButterflyFlight b)
+    {
+        yield return new WaitForSeconds(1.6f + Random.Range(vanishAfter.x, vanishAfter.y));
+        b.Vanish();
     }
 
     IEnumerator ReturnHome()

@@ -5,7 +5,7 @@ using UnityEngine;
 // 프리팹 구조: 루트(이 컴포넌트, +Z가 머리·+Y가 등) / Model(Animation) / Trail(ParticleSystem)
 public class ButterflyFlight : MonoBehaviour
 {
-    public enum State { Rest, Escape, Fly, Return }
+    public enum State { Rest, Escape, Fly, Return, Vanish, Gone }
 
     [Header("Flight")]
     [Range(0.3f, 4f)] public float speed = 1.4f;
@@ -31,6 +31,18 @@ public class ButterflyFlight : MonoBehaviour
     [HideInInspector] public Vector3 surfaceNormal;
     [HideInInspector] public Bounds flyArea;
     [HideInInspector] public Transform followTarget;   // 가끔 이 주변(플레이어 머리)을 맴돈다
+    [HideInInspector] public bool followPlayer;        // 켜면 날아다니는 내내 플레이어 머리 주변을 따라다닌다
+
+    [Header("Follow Player")]
+    [Tooltip("플레이어 머리 주변을 도는 반경 (m)")]
+    [Range(0.3f, 3f)] public float followRadius = 0.9f;
+    [Tooltip("머리 기준 높이 (m) — 음수면 눈 아래")]
+    public float followHeight = -0.2f;
+    [Tooltip("주변을 도는 빠르기 (도/초)")]
+    [Range(10f, 180f)] public float orbitSpeed = 70f;
+    [Tooltip("플레이어에게 다가갈 때 최고 속도 (m/s)")]
+    [Range(1f, 8f)] public float followMaxSpeed = 4f;
+    float orbitAngle;
 
     Animation anim;
     ParticleSystem trail;
@@ -69,11 +81,40 @@ public class ButterflyFlight : MonoBehaviour
         if (Current == State.Fly) SetState(State.Return);
     }
 
+    public bool IsGone => Current == State.Gone;
+
+    // 날던 자리에서 빛 가루로 흩어지며 사라진다
+    public void Vanish()
+    {
+        if (Current != State.Fly && Current != State.Escape) return;
+        vanishScale = transform.localScale;
+        if (Current == State.Escape) { pos = transform.position; target = escapeTo + (escapeTo - escapeFrom).normalized; vel = (escapeTo - escapeFrom).normalized * speed; }
+        if (trail != null) trail.Emit(25);   // 마지막으로 반짝 흩어지는 빛 가루
+        SetState(State.Vanish);
+    }
+
+    // 사라진 나비를 그림 위 원래 자리로 되돌린다 (플레이어가 멀리 있을 때)
+    public void Respawn()
+    {
+        if (Current != State.Gone) return;
+        transform.localScale = vanishScale;
+        SetModelVisible(true);
+        PlaceAtRest(restPosition, surfaceNormal);
+    }
+
+    Vector3 vanishScale;
+
+    void SetModelVisible(bool on)
+    {
+        foreach (var r in GetComponentsInChildren<Renderer>(true))
+            if (!(r is ParticleSystemRenderer)) r.enabled = on;
+    }
+
     void SetState(State s)
     {
         Current = s;
         stateTime = 0f;
-        bool flying = s != State.Rest;
+        bool flying = s == State.Escape || s == State.Fly || s == State.Return;
         if (anim != null) foreach (AnimationState a in anim) a.speed = flying ? flyFlapSpeed : 0f;   // 쉴 때는 Update에서 직접 시간 지정
         if (trail != null)
         {
@@ -113,9 +154,22 @@ public class ButterflyFlight : MonoBehaviour
             }
 
             case State.Fly:
+                if (followPlayer && followTarget != null) { Steer(FollowPoint(dt), dt); break; }
                 if (Time.time >= retargetAt || (target - pos).sqrMagnitude < 0.36f) PickTarget();
                 Steer(target, dt);
                 break;
+
+            case State.Vanish:
+            {
+                // 계속 날면서 0.7초 동안 작아져 사라진다
+                Steer(followPlayer && followTarget != null ? FollowPoint(dt) : target, dt);
+                float k = Mathf.Clamp01(stateTime / 0.7f);
+                transform.localScale = vanishScale * (1f - k * k);
+                if (k < 1f) break;
+                SetModelVisible(false);
+                Current = State.Gone;
+                break;
+            }
 
             case State.Return:
             {
@@ -149,8 +203,11 @@ public class ButterflyFlight : MonoBehaviour
 
     void Steer(Vector3 goal, float dt)
     {
-        var desired = (goal - pos).normalized * speed;
-        vel = Vector3.RotateTowards(vel, desired, turnRate * Mathf.Deg2Rad * dt, speed * dt);
+        // 플레이어를 따라갈 때는 멀수록 빠르게 (짧은 비행 시간 안에 관람객 곁까지 오도록)
+        float s = followPlayer && followTarget != null ? Mathf.Clamp((goal - pos).magnitude * 1.2f, speed, followMaxSpeed) : speed;
+        var desired = (goal - pos).normalized * s;
+        float turn = followPlayer && followTarget != null ? turnRate * 2f : turnRate;
+        vel = Vector3.RotateTowards(vel, desired, turn * Mathf.Deg2Rad * dt, s * 2f * dt);
         if (vel.sqrMagnitude < 0.01f) vel = desired;
         pos += vel * dt;
 
@@ -161,6 +218,15 @@ public class ButterflyFlight : MonoBehaviour
         float bank = Vector3.SignedAngle(transform.forward, fwd, Vector3.up) / Mathf.Max(dt, 1e-4f) * -0.05f;
         var rot = Quaternion.LookRotation(fwd, Vector3.up) * Quaternion.Euler(0f, 0f, Mathf.Clamp(bank, -30f, 30f));
         transform.SetPositionAndRotation(shown, Quaternion.Slerp(transform.rotation, rot, 1f - Mathf.Exp(-6f * dt)));
+    }
+
+    // 플레이어 머리 주변 원을 따라 도는 목표점 (나비마다 phase로 출발 각도가 다름)
+    Vector3 FollowPoint(float dt)
+    {
+        orbitAngle += orbitSpeed * dt;
+        float a = (orbitAngle + phase * 36f) * Mathf.Deg2Rad;
+        var h = followTarget.position;
+        return new Vector3(h.x + Mathf.Cos(a) * followRadius, h.y + followHeight + Mathf.Sin(a * 1.7f) * 0.15f, h.z + Mathf.Sin(a) * followRadius);
     }
 
     void PickTarget()
