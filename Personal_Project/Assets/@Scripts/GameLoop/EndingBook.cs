@@ -12,7 +12,7 @@ public class EndingBook : MonoBehaviour, IPointerTarget
     public Key interactKey = Key.E;
     public Key altInteractKey = Key.F;
     [Tooltip("이 거리(수평) 안에서만 상호작용 — VR 레이저도 동일")]
-    [Range(0.5f, 6f)] public float interactRadius = 2.5f;
+    [Range(0.5f, 6f)] public float interactRadius = 3f;
     [Range(0.5f, 5f)] public float maxHeightDiff = 2.5f;
     [Tooltip("이 층에 와 있어야 상호작용 가능 (비우면 항상)")]
     public FloorStage requiredStage;
@@ -89,7 +89,7 @@ public class EndingBook : MonoBehaviour, IPointerTarget
         var m = GameLoopManager.Instance;
         if (m == null || m.player == null) return;
 
-        bool near = Available(m) && IsNear(m.player.position);
+        bool near = Available(m) && IsNear(m.PlayerPosition);
         if (near != promptShown)
         {
             promptShown = near;
@@ -100,13 +100,27 @@ public class EndingBook : MonoBehaviour, IPointerTarget
 
         var kb = Keyboard.current;
         if (kb != null && (kb[interactKey].wasPressedThisFrame || kb[altInteractKey].wasPressedThisFrame)) ShowEnding();
+        // VR: 책 가까이에서는 레이저로 정확히 가리키지 않아도 트리거(또는 A/X)만 누르면 펼쳐진다
+        else if (VRRig.IsActiveNow && vrPress != null && vrPress.WasPressedThisFrame()) ShowEnding();
     }
+
+    InputAction vrPress;
+
+    void OnEnable()
+    {
+        vrPress = new InputAction("EndingBookPress", InputActionType.Button);
+        vrPress.AddBinding("<XRController>/{TriggerButton}");
+        vrPress.AddBinding("<XRController>/{PrimaryButton}");
+        vrPress.Enable();
+    }
+
+    void OnDisable() => vrPress?.Dispose();
 
     public void OnPointerClick(Vector3 playerPosition)
     {
         var m = GameLoopManager.Instance;
         if (m == null || !Available(m)) return;
-        if (!IsNear(m.player.position)) { m.UI.Toast("책 가까이 가서 펼쳐 주세요", 2f); return; }
+        if (!IsNear(m.PlayerPosition)) { m.UI.Toast("책 가까이 가서 펼쳐 주세요", 2f); return; }
         ShowEnding();
     }
 
@@ -219,7 +233,7 @@ public class EndingBook : MonoBehaviour, IPointerTarget
         {
             var head = VRRig.Current.head;
             // 벽보다 가까이 세워야 레이저가 벽에 막히지 않고 버튼에 닿는다
-            XRCanvasAdapter.ToWorldSpace(canvas, head, 1.6f);
+            XRCanvasAdapter.ToWorldSpace(canvas, head, 2.2f);   // 레이저로 누르기 쉽게 크게
             var fwd = Vector3.ProjectOnPlane(head.transform.forward, Vector3.up).normalized;
             go.transform.SetPositionAndRotation(head.transform.position + fwd * 1.2f, Quaternion.LookRotation(fwd));
             brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.5f);

@@ -60,7 +60,7 @@ public class FloorDoor : MonoBehaviour, IPointerTarget
         var m = GameLoopManager.Instance;
         if (m == null || m.player == null || stage == null) return;
 
-        var p = m.player.position;
+        var p = m.PlayerPosition;
         bool near = !m.UI.IsOpen && !m.IsTeleporting && !PaintingViewer.IsBusy && !FloorChoiceUI.IsOpen && IsNear(p);
 
         if (near && (promptOwner == null || promptOwner == this || Dist(p) < promptOwner.Dist(p)))
@@ -86,7 +86,7 @@ public class FloorDoor : MonoBehaviour, IPointerTarget
         var m = GameLoopManager.Instance;
         if (m == null || m.IsTeleporting || FloorChoiceUI.IsOpen || stage == null) return;
         if (!stage.IsUnlocked) { m.UI.Toast(promptLocked, 2f); return; }
-        if (!IsNear(m.player.position)) { m.UI.Toast(tooFarToast, 2f); return; }
+        if (!IsNear(m.PlayerPosition)) { m.UI.Toast(tooFarToast, 2f); return; }
         if (promptOwner == this) { promptOwner = null; m.UI.HidePrompt(); }
         m.PassDoor(stage);
     }

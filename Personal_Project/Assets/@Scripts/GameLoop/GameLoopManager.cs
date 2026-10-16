@@ -40,6 +40,18 @@ public class GameLoopManager : MonoBehaviour
     public UnityEvent<int> onFloorUnlocked;   // 해제된 층 번호(1부터)
     public UnityEvent onGameCleared;
 
+    // 거리 판정용 플레이어 위치 (발 높이). VR에서는 방 안을 실제로 걸어 다니면 리그 중심과 머리가 어긋나므로 머리의 수평 위치를 쓴다
+    public Vector3 PlayerPosition
+    {
+        get
+        {
+            if (player == null) return Vector3.zero;
+            if (!VRRig.IsActiveNow) return player.position;
+            var h = VRRig.Current.head.transform.position;
+            return new Vector3(h.x, player.position.y, h.z);
+        }
+    }
+
     public QuizUI UI { get; private set; }
     public FloorStage CurrentStage { get; private set; }
     public bool IsTeleporting { get; private set; }

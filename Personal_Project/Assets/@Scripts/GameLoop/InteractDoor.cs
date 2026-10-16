@@ -71,8 +71,8 @@ public class InteractDoor : MonoBehaviour, IPointerTarget
         var m = GameLoopManager.Instance;
         if (m == null || m.player == null) return;
 
-        bool near = !IsOpen && !m.UI.IsOpen && !PaintingViewer.IsBusy && IsPlayerNear(m.player.position);
-        if (near && (promptOwner == null || promptOwner == this || Dist(m.player.position) < promptOwner.Dist(m.player.position)))
+        bool near = !IsOpen && !m.UI.IsOpen && !PaintingViewer.IsBusy && IsPlayerNear(m.PlayerPosition);
+        if (near && (promptOwner == null || promptOwner == this || Dist(m.PlayerPosition) < promptOwner.Dist(m.PlayerPosition)))
         {
             promptOwner = this;
             m.UI.ShowPrompt(IsLocked ? promptLocked : VRRig.IsActiveNow ? promptOpenVR : promptOpen);
@@ -88,7 +88,7 @@ public class InteractDoor : MonoBehaviour, IPointerTarget
         if (kb == null || !(kb[interactKey].wasPressedThisFrame || kb[altInteractKey].wasPressedThisFrame)) return;
 
         if (IsLocked) { m.UI.Toast(promptLocked, 2f); return; }
-        Open(m.player.position);
+        Open(m.PlayerPosition);
     }
 
     Vector3 Center => doorLeaf != null && doorLeaf.GetComponentInChildren<Renderer>() != null

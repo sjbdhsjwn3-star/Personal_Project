@@ -8,7 +8,7 @@ using UnityEngine.XR;
 
 // VR 플레이어 리그. 헤드셋이 켜져 있으면 실행 중 자동으로 VR 모드로 바뀐다.
 //  - 왼쪽 스틱 : 이동 (바라보는 방향 기준)
-//  - 오른쪽 스틱: 방향 전환 (스냅 / 부드럽게)
+//  - 오른쪽 스틱: 좌우 = 방향 전환, 위아래 = 앞뒤로 걷기 (rightHandMove — 오른손 하나로 다 할 수 있게)
 //  - 양손 레이저 + 트리거(또는 A·X): 문 열기, World Space UI 버튼 클릭
 // 헤드셋이 없으면 아무것도 하지 않으므로 키보드·마우스 플레이가 그대로 동작한다.
 public class VRRig : MonoBehaviour
@@ -24,7 +24,9 @@ public class VRRig : MonoBehaviour
     [Tooltip("VR 모드에서 끌 데스크톱 전용 컴포넌트 (마우스 시점, 키보드 이동 등)")]
     public List<Behaviour> disableInVR = new List<Behaviour>();
 
-    [Header("Move — 왼쪽 스틱")]
+    [Header("Move — 왼쪽 스틱 (오른쪽 스틱 위아래로도 앞뒤 이동)")]
+    [Tooltip("켜면 오른손 컨트롤러 하나로 다 된다: 오른쪽 스틱 위/아래 = 앞뒤로 걷기, 좌/우 = 방향 돌리기, 트리거 = 클릭")]
+    public bool rightHandMove = true;
     [Range(0.5f, 6f)] public float moveSpeed = 2.5f;
     public float gravity = -15f;
     [Range(0f, 0.5f)] public float deadZone = 0.15f;
@@ -200,6 +202,12 @@ public class VRRig : MonoBehaviour
         if (body == null || !body.enabled) return;
         var input = moveAction.ReadValue<Vector2>();
         if (input.magnitude < deadZone) input = Vector2.zero;
+        if (rightHandMove && input == Vector2.zero)
+        {
+            // 오른쪽 스틱 위/아래 = 앞뒤로 걷기 (좌우는 Turn에서 방향 돌리기)
+            float y = turnAction.ReadValue<Vector2>().y;
+            if (Mathf.Abs(y) > deadZone) input = new Vector2(0f, y);
+        }
         input = Vector2.ClampMagnitude(input, 1f);
 
         var yaw = Quaternion.Euler(0f, head.transform.eulerAngles.y, 0f);
@@ -210,7 +218,10 @@ public class VRRig : MonoBehaviour
 
     void Turn()
     {
-        float x = turnAction.ReadValue<Vector2>().x;
+        var stick = turnAction.ReadValue<Vector2>();
+        float x = stick.x;
+        // 오른손으로 걸을 때: 스틱이 위아래 쪽으로 더 기울어 있으면 걷는 중이니 회전은 약하게 (대각선으로 밀면 걸으면서 천천히 돈다)
+        if (rightHandMove && Mathf.Abs(stick.y) > Mathf.Abs(stick.x)) x *= 0.5f;
         if (snapTurn)
         {
             if (!turnLatched && Mathf.Abs(x) > 0.7f) { RotateAroundHead(Mathf.Sign(x) * snapAngle); turnLatched = true; }
@@ -281,11 +292,14 @@ public class VRRig : MonoBehaviour
         IPointerTarget target = null;
 
         var button = frozen ? null : FindButton(ray, ref dist);
-        if (RaycastWorld(ray, dist, out var hit))
+        // 메뉴(시작 안내·층 선택·엔딩)가 떠 있으면 항상 맨 앞에 그려지므로, 사이에 벽·책 같은 물체가 있어도 버튼을 누를 수 있게
+        bool menuOpen = IntroPanel.IsOpen || FloorChoiceUI.IsOpen || EndingBook.IsShowing;
+        if (menuOpen && button == null) dist = Mathf.Min(dist, 3f);
+        if (!(menuOpen && button != null) && RaycastWorld(ray, dist, out var hit))
         {
             dist = hit.distance;
             button = null;
-            target = frozen ? null : PointerTargetLink.Find(hit.collider);
+            target = frozen || menuOpen ? null : PointerTargetLink.Find(hit.collider);   // 메뉴가 떠 있을 땐 뒤의 문·그림은 안 눌리게
         }
         SetHover(h, button);
 
@@ -298,7 +312,11 @@ public class VRRig : MonoBehaviour
 
         if (frozen || !h.click.WasPressedThisFrame()) return;
         if (button != null) button.onClick.Invoke();
-        else if (target != null) target.OnPointerClick(transform.position);
+        else if (target != null)
+        {
+            var m = GameLoopManager.Instance;
+            target.OnPointerClick(m != null ? m.PlayerPosition : transform.position);   // 방 안에서 걸어 다닌 만큼 머리 위치 기준
+        }
     }
 
     // 플레이어 자신의 콜라이더는 건너뛰고 가장 가까운 물체
@@ -322,7 +340,7 @@ public class VRRig : MonoBehaviour
         if (Time.unscaledTime >= nextButtonScan)
         {
             buttons = FindObjectsByType<Button>(FindObjectsSortMode.None);
-            nextButtonScan = Time.unscaledTime + 1f;
+            nextButtonScan = Time.unscaledTime + 0.25f;   // 메뉴가 뜨자마자 버튼이 눌리도록 자주 갱신
         }
 
         Button best = null;
